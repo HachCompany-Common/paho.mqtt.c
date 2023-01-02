@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 IBM Corp. and Ian Craggs
+ * Copyright (c) 2009, 2022 IBM Corp. and Ian Craggs
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -77,6 +77,39 @@ void Thread_start(thread_fn fn, void* parameter)
 	pthread_attr_destroy(&attr);
 #endif
 	FUNC_EXIT;
+}
+
+
+int Thread_set_name(const char* thread_name)
+{
+	int rc = 0;
+#if defined(_WIN32) || defined(_WIN64)
+#define MAX_THREAD_NAME_LENGTH 30
+	wchar_t wchars[MAX_THREAD_NAME_LENGTH];
+#endif
+	FUNC_ENTRY;
+
+#if defined(_WIN32) || defined(_WIN64)
+/* Using NTDDI_VERSION rather than WINVER for more detailed version targeting */
+/* Can't get this conditional compilation to work so remove it for now */
+/*#if NTDDI_VERSION >= NTDDI_WIN10_RS1
+	mbstowcs(wchars, thread_name, MAX_THREAD_NAME_LENGTH);
+	rc = (int)SetThreadDescription(GetCurrentThread(), wchars);
+#endif*/
+#elif defined(OSX)
+	/* pthread_setname_np __API_AVAILABLE(macos(10.6), ios(3.2)) */
+#if defined(__APPLE__) && __MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+	rc = pthread_setname_np(thread_name);
+#endif
+#else
+#if defined(__GNUC__) && defined(__linux__)
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 12
+	rc = pthread_setname_np(Thread_getid(), thread_name);
+#endif
+#endif
+#endif
+	FUNC_EXIT_RC(rc);
+	return rc;
 }
 
 
