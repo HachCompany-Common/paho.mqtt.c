@@ -27,8 +27,6 @@
  */
 
 #if defined(OPENSSL)
-#include "Heap.h"
-
 #include "SocketBuffer.h"
 #include "MQTTClient.h"
 #include "MQTTProtocolOut.h"
@@ -37,13 +35,13 @@
 #include "StackTrace.h"
 #include "Socket.h"
 
-#include "Heap.h"
-
 #include <string.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/crypto.h>
 #include <openssl/x509v3.h>
+
+#include "Heap.h" /* must always be the last header as malloc, free are redefined */
 
 extern Sockets mod_s;
 
